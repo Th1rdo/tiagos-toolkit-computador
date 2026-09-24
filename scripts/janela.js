@@ -75,6 +75,8 @@ export class Computador extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   get souControlador() { return this.#dados?.controlador === game.user.id; }
+  /** Quem está ao teclado escreve — e o mestre também, sempre (para mostrar, ajudar ou desencravar). */
+  get possoEscrever() { return this.souControlador || game.user.isGM; }
   get #aArrancar() { return Date.now() < this.#arranqueAte; }
 
   /** Durante o arranque, a barra de progresso anda sozinha em cada ecrã. */
@@ -131,7 +133,8 @@ export class Computador extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onRender?.(ctx, opts);
     const ecra = this.element.querySelector(".cmp-ecra");
     // quem está ao teclado escreve direto: o ecrã apanha o foco sozinho
-    if (this.souControlador && !this.#aArrancar) ecra?.focus({ preventScroll: true });
+    const meu = this.souControlador || (game.user.isGM && !this.#dados?.controlador);
+    if (meu && !this.#aArrancar) ecra?.focus({ preventScroll: true });
 
     ecra?.addEventListener("keydown", (ev) => this.#tecla(ev));
     ecra?.addEventListener("pointerdown", () => acordar());
@@ -150,7 +153,7 @@ export class Computador extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   #tecla(ev) {
-    if (!this.souControlador || this.#aArrancar) return;
+    if (!this.possoEscrever || this.#aArrancar) return;
     const k = ev.key;
     const conhecida = ["ArrowUp", "ArrowDown", "Enter", "Escape", "Backspace", "PageUp", "PageDown"].includes(k);
     const letra = k.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey;
@@ -161,7 +164,7 @@ export class Computador extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   #enviar(entrada) {
-    if (!this.souControlador || this.#aArrancar) return;
+    if (!this.possoEscrever || this.#aArrancar) return;
     acordar();
     Computador.aoEscrever(entrada);
   }

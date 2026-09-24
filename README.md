@@ -9,7 +9,8 @@ O mestre mostra-o à mesa e escolhe quem está ao teclado; toda a gente vê o me
 - **Senhas** ignoram maiúsculas, espaços à volta e acentos. Tentativas ilimitadas. Uma pasta aberta fica aberta
   (`game.computador.trancarTudo(diario)` volta a fechar tudo).
 - **Quem está ao teclado** escreve direto no ecrã: setas, Enter, Esc, PgUp/PgDn — ou clica.
-  Os outros veem. O mestre muda quem está ao teclado no rodapé, ou desliga.
+  Os outros veem. **O mestre pode escrever sempre**, esteja quem estiver ao teclado (clica na tela primeiro).
+  No rodapé, o mestre muda quem está ao teclado («só o mestre» também serve), ou desliga.
 - Ecrã: fósforo **verde, âmbar ou branco**; moldura **clara, escura ou nenhuma**. Arranque com o nome do
   computador em letras grandes, sons sintetizados (volume de Interface).
 

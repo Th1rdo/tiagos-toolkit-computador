@@ -2,7 +2,7 @@
   "id": "tiagos-toolkit-computador",
   "title": "Tiago's Toolkit: Computador",
   "description": "Um diário vira um computador CRT: pastas, ficheiros e senhas. O mestre mostra-o à mesa e escolhe quem está ao teclado; toda a gente vê o ecrã em direto. Só o mestre verifica as senhas; os jogadores recebem apenas o que está no ecrã.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "compatibility": {
     "minimum": "13",
     "verified": "14"
@@ -33,5 +33,5 @@
   "socket": true,
   "url": "https://github.com/Th1rdo/tiagos-toolkit-computador",
   "manifest": "https://github.com/Th1rdo/tiagos-toolkit-computador/releases/latest/download/module.json",
-  "download": "https://github.com/Th1rdo/tiagos-toolkit-computador/releases/download/v0.1.0/tiagos-toolkit-computador.zip"
+  "download": "https://github.com/Th1rdo/tiagos-toolkit-computador/releases/download/v0.1.1/tiagos-toolkit-computador.zip"
 }
