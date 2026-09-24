@@ -21,16 +21,20 @@ export async function configurar(diario) {
     partes.forEach((_, i) => pastas.add(partes.slice(0, i + 1).join("/")));
   }
 
-  const select = (nome, valores, atual, prefixo) => `<select name="${nome}">${valores.map(v =>
-    `<option value="${v}" ${v === atual ? "selected" : ""}>${t(`${prefixo}.${v}`)}</option>`).join("")}</select>`;
+  const ROTULOS = {
+    verde: "COMPUTADOR.Fosforo.verde", ambar: "COMPUTADOR.Fosforo.ambar", branco: "COMPUTADOR.Fosforo.branco",
+    clara: "COMPUTADOR.Moldura.clara", escura: "COMPUTADOR.Moldura.escura", sem: "COMPUTADOR.Moldura.sem"
+  };
+  const select = (nome, valores, atual) => `<select name="${nome}">${valores.map(v =>
+    `<option value="${v}" ${v === atual ? "selected" : ""}>${t(ROTULOS[v])}</option>`).join("")}</select>`;
 
   const conteudo = `
     <div class="cmp-config">
       <fieldset><legend>${t("COMPUTADOR.Config.Ecra")}</legend>
         <div class="form-group"><label>${t("COMPUTADOR.Config.TituloEcra")}</label>
           <input type="text" name="titulo" value="${esc(cfg.titulo)}"></div>
-        <div class="form-group"><label>${t("COMPUTADOR.Config.Fosforo")}</label>${select("fosforo", Object.keys(FOSFORO), cfg.fosforo, "COMPUTADOR.Fosforo")}</div>
-        <div class="form-group"><label>${t("COMPUTADOR.Config.Moldura")}</label>${select("moldura", MOLDURAS, cfg.moldura, "COMPUTADOR.Moldura")}</div>
+        <div class="form-group"><label>${t("COMPUTADOR.Config.Fosforo")}</label>${select("fosforo", Object.keys(FOSFORO), cfg.fosforo)}</div>
+        <div class="form-group"><label>${t("COMPUTADOR.Config.Moldura")}</label>${select("moldura", MOLDURAS, cfg.moldura)}</div>
       </fieldset>
       <fieldset><legend>${t("COMPUTADOR.Config.Acesso")}</legend>
         <div class="form-group"><label>${t("COMPUTADOR.Config.Senha")}</label>

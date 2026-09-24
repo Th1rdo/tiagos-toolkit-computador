@@ -101,6 +101,9 @@
   text-transform: uppercase;
   user-select: none;
 }
+#computador-janela .cmp-topo { flex: 0 0 auto; }
+#computador-janela .cmp-caminho { opacity: 0.85; }
+#computador-janela .cmp-quem { opacity: 0.9; }
 #computador-janela .cmp-titulo { font-size: 1.12em; letter-spacing: 0.1em; }
 #computador-janela .cmp-regua {
   height: 0; margin: 4px 0 10px;
