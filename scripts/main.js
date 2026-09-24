@@ -10,12 +10,23 @@ import { configurar } from "./config.js";
  * Um diário vira um computador. O mestre carrega em «Mostrar à mesa» e escolhe
  * quem está ao teclado; o monitor abre para toda a gente e cada tecla de quem
  * joga vai ao mestre, que é o único a saber as senhas e o que está fechado.
- * Os outros recebem só o que se vê — a espreitar a consola não se descobre nada.
+ * Os outros recebem só o que se vê. (O Foundry envia os diários a todos os browsers,
+ * por isso quem abrir a consola consegue ler o diário — como qualquer diário do Foundry.)
  */
 
 let ativo = null;          // só no mestre: { id, estado, controlador }
 
 const souMestreAtivo = () => game.users.activeGM?.isSelf;
+
+// O que está no ar sobrevive a um recarregar do mestre (no browser dele, não na base de dados:
+// escreve-se a cada tecla). Sem isto, os jogadores ficavam com um ecrã que já não respondia.
+const CHAVE = () => `${MODULE_ID}.ativo.${game.world.id}`;
+function guardar() {
+  try { ativo ? localStorage.setItem(CHAVE(), JSON.stringify(ativo)) : localStorage.removeItem(CHAVE()); } catch { /* sem armazenamento */ }
+}
+function recuperar() {
+  try { return JSON.parse(localStorage.getItem(CHAVE()) ?? "null"); } catch { return null; }
+}
 const emitir = (msg) => game.socket.emit(SOCKET, msg);
 
 function visual(diario) {
@@ -36,6 +47,7 @@ export async function abrir(diarioOuId, { controlador = null } = {}) {
   const diario = typeof diarioOuId === "string" ? game.journal.get(diarioOuId) : diarioOuId;
   if (!diario) return;
   ativo = { id: diario.id, estado: estadoInicial(contexto(diario)), controlador };
+  guardar();
   const msg = pacoteAbrir(diario, true);
   emitir(msg);                                   // o emit não ecoa: o mestre abre à parte
   await Computador.mostrar(msg, { arranque: true });
@@ -59,18 +71,21 @@ async function processar(entrada, de) {
   const { estado, efeitos } = reduzir(ativo.estado, entrada, contexto(diario));
   for (const e of efeitos) if (typeof e.desbloquear === "string") await desbloquear(diario, e.desbloquear);
   ativo.estado = estado;
+  guardar();
   difundir(efeitos.filter(e => e.som));
 }
 
 function mudarControlo(id) {
   if (!ativo) return;
   ativo.controlador = id || null;
+  guardar();
   difundir();
 }
 
 function desligar() {
   if (!ativo) return;
   ativo = null;
+  guardar();
   emitir({ tipo: "fechar" });
   Computador.fechar();
 }
@@ -101,6 +116,16 @@ Hooks.once("ready", () => {
   });
   if (!game.user.isGM) emitir({ tipo: "pedir" });
 
+  // o mestre recarregou com um computador no ar: volta a pô-lo à frente de toda a gente
+  const antes = game.user.isGM && souMestreAtivo() ? recuperar() : null;
+  const diarioAntes = antes && game.journal.get(antes.id);
+  if (diarioAntes && eComputador(diarioAntes)) {
+    ativo = antes;
+    const msg = pacoteAbrir(diarioAntes, false);
+    emitir(msg);
+    Computador.mostrar(msg);
+  } else if (antes) { ativo = null; guardar(); }
+
   game.computador = { abrir, desligar, configurar, trancarTudo: (d) => trancarTudo(typeof d === "string" ? game.journal.get(d) : d) };
   log("pronto");
 });
@@ -110,6 +135,9 @@ for (const h of ["createJournalEntryPage", "updateJournalEntryPage", "deleteJour
   Hooks.on(h, (pagina) => { if (ativo && pagina.parent?.id === ativo.id && souMestreAtivo()) difundir(); });
 }
 Hooks.on("updateJournalEntry", (diario) => { if (ativo && diario.id === ativo.id && souMestreAtivo()) difundir(); });
+
+// Quem entra ou sai muda a lista «ao teclado» do rodapé do mestre.
+Hooks.on("userConnected", () => Computador.redesenhar());
 
 // ---------------------------------------------------------------- onde o mestre carrega
 

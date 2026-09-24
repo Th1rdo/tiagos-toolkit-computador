@@ -1,7 +1,7 @@
 {
   "id": "tiagos-toolkit-computador",
   "title": "Tiago's Toolkit: Computador",
-  "description": "Um diário vira um computador CRT: pastas, ficheiros e senhas. O mestre mostra-o à mesa e escolhe quem está ao teclado; toda a gente vê o ecrã em direto. As senhas e as pastas fechadas nunca saem do computador do mestre.",
+  "description": "Um diário vira um computador CRT: pastas, ficheiros e senhas. O mestre mostra-o à mesa e escolhe quem está ao teclado; toda a gente vê o ecrã em direto. Só o mestre verifica as senhas; os jogadores recebem apenas o que está no ecrã.",
   "version": "0.1.0",
   "compatibility": {
     "minimum": "13",

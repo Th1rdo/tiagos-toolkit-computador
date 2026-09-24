@@ -3,7 +3,7 @@
  *
  * Um computador é um diário: cada página é um ficheiro, e a «pasta» de cada
  * página (ex.: "VOSS - PRIVADO/2011") desenha as pastas no ecrã. As senhas vivem
- * na configuração do computador e **só existem no cliente do mestre**: é ele que
+ * na configuração do computador e **só o mestre as verifica**: é ele que
  * corre `reduzir()` e manda aos outros apenas a `vista()` — o que se pode ver.
  */
 

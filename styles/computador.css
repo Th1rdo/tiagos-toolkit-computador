@@ -176,6 +176,11 @@
 }
 #computador-janela button.cmp-desligar:hover { background: rgba(224, 168, 90, 0.12); }
 
+/* ---------------------------------------------------------------- diálogo de configuração */
+/* um diário com muitas páginas passa da altura do ecrã: a lista rola e o «Guardar» fica à vista */
+.cmp-config { max-height: 68vh; overflow-y: auto; padding-right: 6px; }
+.cmp-config .form-group > label { flex: 0 0 38%; }
+
 @media (prefers-reduced-motion: reduce) {
   #computador-janela .cmp-ecra, #computador-janela .cmp-linhas { animation: none; }
 }

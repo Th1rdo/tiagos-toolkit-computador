@@ -46,17 +46,32 @@ export class Computador extends HandlebarsApplicationMixin(ApplicationV2) {
     return j;
   }
 
+  /**
+   * Aberta = já desenhada ou a meio de se desenhar. `rendered` só é verdade entre
+   * renders: uma vista que chegue a meio de um (o hook do desbloqueio pede um)
+   * era deitada fora, e o ecrã ficava preso na senha.
+   */
+  static get #aberta() {
+    const j = Computador.#instancia;
+    return !!j && j.state > ApplicationV2.RENDER_STATES.NONE;
+  }
+
   static atualizar(parcial) {
     const j = Computador.#instancia;
-    if (!j?.rendered) return;
+    if (!Computador.#aberta) return;
     Object.assign(j.#dados, parcial);
     for (const e of parcial.efeitos ?? []) if (e.som) tocar[e.som]?.();
     j.render();
   }
 
+  /** Desenhar outra vez com os mesmos dados (ex.: entrou alguém e a lista do rodapé mudou). */
+  static redesenhar() {
+    if (Computador.#aberta) Computador.#instancia.render();
+  }
+
   static fechar() {
     const j = Computador.#instancia;
-    if (j?.rendered) { tocar.desligar(); j.close({ doMestre: true }); }
+    if (Computador.#aberta) { tocar.desligar(); j.close({ doMestre: true }); }
   }
 
   get souControlador() { return this.#dados?.controlador === game.user.id; }
@@ -67,7 +82,8 @@ export class Computador extends HandlebarsApplicationMixin(ApplicationV2) {
     clearInterval(this.#relogio);
     if (!this.#aArrancar) return;
     this.#relogio = setInterval(() => {
-      if (!this.rendered) return clearInterval(this.#relogio);
+      if (!Computador.#aberta) return clearInterval(this.#relogio);
+      if (!this.rendered) return;             // a meio de um render: fica para o próximo tique
       if (!this.#aArrancar) { clearInterval(this.#relogio); return this.render(); }
       const pct = Math.min(100, Math.round(100 * (1 - (this.#arranqueAte - Date.now()) / ARRANQUE_MS)));
       const barra = this.element.querySelector("[data-barra]");
