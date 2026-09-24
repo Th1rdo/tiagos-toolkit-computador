@@ -1,0 +1,2 @@
+{ "name": "tiagos-toolkit-computador", "private": true, "type": "module",
+  "scripts": { "test": "node --test test/*.test.mjs && python3 test/verificar.py" } }

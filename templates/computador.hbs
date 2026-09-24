@@ -1,0 +1,73 @@
+<section class="cmp-raiz" data-moldura="{{visual.moldura}}" style="--cmp-fosforo: {{visual.cor}}; --cmp-fundo: {{visual.fundo}}">
+  <div class="cmp-monitor">
+    <div class="cmp-ecra" tabindex="0">
+      <div class="cmp-conteudo">
+        {{#if arranque}}
+        <div class="cmp-arranque">
+          <pre class="cmp-logo">{{arranque.logo}}</pre>
+          <div class="cmp-arranque-texto">{{localize "COMPUTADOR.Arranque.Titulo"}}</div>
+          <div class="cmp-checks">
+            {{#each arranque.checks}}<div class="cmp-check"><span>{{this}}</span><span class="cmp-pontos"></span><span data-check>{{localize "COMPUTADOR.Arranque.Espera"}}</span></div>{{/each}}
+          </div>
+          <div class="cmp-arranque-texto">{{localize "COMPUTADOR.Arranque.Sequencia"}}</div>
+          <pre class="cmp-barra" data-barra>{{arranque.barra}}</pre>
+        </div>
+        {{else}}
+        <header class="cmp-topo">
+          <div class="cmp-titulo">{{titulo}}</div>
+          <div class="cmp-regua"></div>
+        </header>
+
+        {{#if lista}}
+        <div class="cmp-caminho">{{v.caminho}}</div>
+        <div class="cmp-pasta">{{pasta}}</div>
+        <ol class="cmp-lista">
+          {{#each entradas}}
+          <li class="cmp-entrada {{#if ativa}}cmp-ativa{{/if}}" data-indice="{{i}}">
+            <span class="cmp-seta">{{#if ativa}}&gt;{{/if}}</span>{{#if protegida}}{{localize "COMPUTADOR.Protegido"}} {{/if}}{{rotulo}}
+          </li>
+          {{else}}
+          <li class="cmp-vazio">{{localize "COMPUTADOR.Vazio"}}</li>
+          {{/each}}
+        </ol>
+        <footer class="cmp-ajuda">{{localize "COMPUTADOR.Ajuda.Lista"}}</footer>
+        {{/if}}
+
+        {{#if ficheiro}}
+        <div class="cmp-caminho">{{v.caminho}}</div>
+        <div class="cmp-pasta">{{v.ficheiro.titulo}}</div>
+        <div class="cmp-texto">{{{ficheiroHtml}}}</div>
+        <footer class="cmp-ajuda cmp-ajuda-barra" data-voltar>{{localize "COMPUTADOR.Ajuda.Ficheiro"}}</footer>
+        {{/if}}
+
+        {{#if senha}}
+        <div class="cmp-senha">
+          <div>{{#if v.senha.alvo}}{{localize "COMPUTADOR.Senha.Desbloquear"}} {{v.senha.alvo}}{{else}}{{localize "COMPUTADOR.Senha.Restrito"}}{{/if}}</div>
+          {{#if v.senha.dica}}<div>{{localize "COMPUTADOR.Senha.Dica"}} {{v.senha.dica}}</div>{{/if}}
+          <div class="cmp-apagado">{{localize "COMPUTADOR.Senha.Ignora"}}</div>
+          {{#if v.senha.erro}}<div class="cmp-erro">{{localize "COMPUTADOR.Senha.Errada"}}</div>{{/if}}
+          <div class="cmp-linha-senha">{{localize "COMPUTADOR.Senha.Campo"}} {{v.senha.mascara}}<span class="cmp-cursor">█</span></div>
+        </div>
+        <footer class="cmp-ajuda">{{#if v.senha.alvo}}{{localize "COMPUTADOR.Ajuda.Senha"}}{{else}}{{localize "COMPUTADOR.Ajuda.SenhaRaiz"}}{{/if}}</footer>
+        {{/if}}
+        {{/if}}
+      </div>
+      <div class="cmp-linhas"></div>
+      <div class="cmp-brilho"></div>
+    </div>
+  </div>
+
+  <footer class="cmp-rodape">
+    {{#if isGM}}
+    <label class="cmp-controlo">{{localize "COMPUTADOR.AoTeclado"}}
+      <select data-controlo>
+        <option value="">{{localize "COMPUTADOR.Ninguem"}}</option>
+        {{#each jogadores}}<option value="{{id}}" {{#if escolhido}}selected{{/if}}>{{nome}}</option>{{/each}}
+      </select>
+    </label>
+    <button type="button" class="cmp-desligar" data-desligar>{{localize "COMPUTADOR.Desligar"}}</button>
+    {{else}}
+    <span class="cmp-quem">{{#if souControlador}}{{localize "COMPUTADOR.OTeuTeclado"}}{{else}}{{#if controlador}}{{localize "COMPUTADOR.AoTeclado"}} {{controlador}}{{else}}{{localize "COMPUTADOR.SemControlo"}}{{/if}}{{/if}}</span>
+    {{/if}}
+  </footer>
+</section>
