@@ -1,5 +1,4 @@
 {
-  "COMPUTADOR.Titulo": "Computador",
   "COMPUTADOR.Mostrar": "Mostrar o computador à mesa",
   "COMPUTADOR.Configurar": "Configurar como computador",
   "COMPUTADOR.AoTeclado": "Ao teclado:",
@@ -31,7 +30,7 @@
   "COMPUTADOR.Fosforo.ambar": "Âmbar",
   "COMPUTADOR.Fosforo.branco": "Branco",
   "COMPUTADOR.Moldura.clara": "Plástico claro",
-  "COMPUTADOR.Moldura.escura": "Plástico escuro",
+  "COMPUTADOR.Moldura.escura": "Plástico escuro limpo",
   "COMPUTADOR.Moldura.sem": "Só a tela",
   "COMPUTADOR.Config.Ecra": "Tela",
   "COMPUTADOR.Config.TituloEcra": "Título no topo da tela",
@@ -48,5 +47,19 @@
   "COMPUTADOR.Config.Pastas": "Senhas das pastas",
   "COMPUTADOR.Config.PastasDica": "Pastas novas aparecem aqui depois de salvar e abrir de novo.",
   "COMPUTADOR.Config.Guardar": "Salvar",
-  "COMPUTADOR.Config.Guardado": "“{nome}” está pronto como computador."
+  "COMPUTADOR.Config.Guardado": "“{nome}” está pronto como computador.",
+  "COMPUTADOR.Moldura.gasta": "Plástico gasto (escuro)",
+  "COMPUTADOR.QuemVe": "Quem vê:",
+  "COMPUTADOR.TodaAMesa": "toda a mesa",
+  "COMPUTADOR.Alguns": "só alguns",
+  "COMPUTADOR.Transmissao": "Transmissão (espectadores)",
+  "COMPUTADOR.ForaDeLinha": "desconectado",
+  "COMPUTADOR.SemJogadores": "Não há jogadores neste mundo.",
+  "COMPUTADOR.Esconder": "Esconder",
+  "COMPUTADOR.EsconderDica": "Esconde a sua tela; o computador continua ligado para quem está no teclado. Volte pela aba no topo.",
+  "COMPUTADOR.Fechar": "Fechar",
+  "COMPUTADOR.NoAr": "Computador ligado",
+  "COMPUTADOR.Ver": "Ver",
+  "COMPUTADOR.Definicoes.Curvatura": "Tela curva do computador",
+  "COMPUTADOR.Definicoes.CurvaturaDica": "Curva o texto como num monitor CRT. Desligue se o computador ficar lento nesta máquina."
 }

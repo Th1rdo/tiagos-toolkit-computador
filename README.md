@@ -11,16 +11,26 @@ O mestre mostra-o à mesa e escolhe quem está ao teclado; toda a gente vê o me
 - **Quem está ao teclado** escreve direto no ecrã: setas, Enter, Esc, PgUp/PgDn — ou clica.
   Os outros veem. **O mestre pode escrever sempre**, esteja quem estiver ao teclado (clica na tela primeiro).
   No rodapé, o mestre muda quem está ao teclado («só o mestre» também serve), ou desliga.
-- Ecrã: fósforo **verde, âmbar ou branco**; moldura **clara, escura ou nenhuma**. Arranque com o nome do
-  computador em letras grandes, sons sintetizados (volume de Interface).
+- **Ecrã inteiro (0.2).** O computador toma conta do ecrã: uma sala escura com o monitor ao meio, a interface
+  do Foundry por baixo e o mapa a 5 fps enquanto está ligado (volta ao normal quando se fecha).
+- **Vidro curvo.** O texto encurva nas bordas como num CRT (filtro SVG só na camada do texto; as linhas de
+  varrimento, o grão e o reflexo ficam por cima). Quem tiver um computador lento desliga-o nas definições
+  do módulo («Tela curva do computador», é de cada um).
+- Ecrã: fósforo **verde, âmbar ou branco**; moldura **gasta** (escura e suja, a de omissão), escura, clara ou
+  nenhuma. Arranque com o nome do computador em letras grandes, sons sintetizados (volume de Interface).
 
 ## Como se usa
 
-1. No diário: **⋮ → Configurar como computador** — título do ecrã, cor, senha, pasta de cada ficheiro,
+1. No diário: **⋮ → Configurar como computador** — título do ecrã, cor, moldura, senha, pasta de cada ficheiro,
    senha e dica de cada pasta.
-2. **⋮ → Mostrar o computador à mesa** (também no menu do diário na barra lateral) → escolher quem fica ao
-   teclado.
-3. **Desligar** no rodapé, ou o X do mestre. O X de um jogador só fecha a janela dele.
+2. **⋮ → Mostrar o computador à mesa** (também no menu do diário na barra lateral) → escolher **quem fica ao
+   teclado** e **quem vê** (a transmissão, se usares o módulo Transmissão, é uma caixa à parte).
+3. No rodapé (aparece ao passar o rato em baixo), o mestre muda quem está ao teclado e quem vê, **Esconde** a
+   sua tela ou **Desliga**.
+   - **Esconder / o X do mestre** fecha só a tela do mestre: quem está ao teclado continua a usar o computador.
+     Volta-se pela aba **«Computador ligado · Ver»** no topo do ecrã.
+   - **Fechar** de um jogador fecha só a dele; volta pela mesma aba.
+   - **Desligar** desliga para todos.
 
 Se o mestre recarregar a página, o computador volta a aparecer onde estava.
 

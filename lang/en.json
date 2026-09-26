@@ -1,5 +1,4 @@
 {
-  "COMPUTADOR.Titulo": "Computer",
   "COMPUTADOR.Mostrar": "Show the computer to the table",
   "COMPUTADOR.Configurar": "Configure as computer",
   "COMPUTADOR.AoTeclado": "At the keyboard:",
@@ -31,7 +30,7 @@
   "COMPUTADOR.Fosforo.ambar": "Amber",
   "COMPUTADOR.Fosforo.branco": "White",
   "COMPUTADOR.Moldura.clara": "Light plastic",
-  "COMPUTADOR.Moldura.escura": "Dark plastic",
+  "COMPUTADOR.Moldura.escura": "Clean dark plastic",
   "COMPUTADOR.Moldura.sem": "Screen only",
   "COMPUTADOR.Config.Ecra": "Screen",
   "COMPUTADOR.Config.TituloEcra": "Title at the top of the screen",
@@ -48,5 +47,19 @@
   "COMPUTADOR.Config.Pastas": "Folder passwords",
   "COMPUTADOR.Config.PastasDica": "New folders show up here after saving and reopening.",
   "COMPUTADOR.Config.Guardar": "Save",
-  "COMPUTADOR.Config.Guardado": "\"{nome}\" is ready as a computer."
+  "COMPUTADOR.Config.Guardado": "\"{nome}\" is ready as a computer.",
+  "COMPUTADOR.Moldura.gasta": "Worn plastic (dark)",
+  "COMPUTADOR.QuemVe": "Who sees it:",
+  "COMPUTADOR.TodaAMesa": "the whole table",
+  "COMPUTADOR.Alguns": "only some",
+  "COMPUTADOR.Transmissao": "Broadcast (spectators)",
+  "COMPUTADOR.ForaDeLinha": "offline",
+  "COMPUTADOR.SemJogadores": "There are no players in this world.",
+  "COMPUTADOR.Esconder": "Hide",
+  "COMPUTADOR.EsconderDica": "Hides your screen; the computer stays on for whoever is at the keyboard. Come back through the tab at the top.",
+  "COMPUTADOR.Fechar": "Close",
+  "COMPUTADOR.NoAr": "Computer on",
+  "COMPUTADOR.Ver": "View",
+  "COMPUTADOR.Definicoes.Curvatura": "Curved computer screen",
+  "COMPUTADOR.Definicoes.CurvaturaDica": "Bends the text like a CRT monitor. Turn it off if the computer gets slow on this machine."
 }

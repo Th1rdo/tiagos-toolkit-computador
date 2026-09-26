@@ -163,3 +163,40 @@ test("o logótipo em blocos tem 5 linhas e a mesma largura em todas", () => {
   assert.equal(new Set(l.map(x => x.length)).size, 1);
   assert.ok(l.join("").includes("█"));
 });
+
+// ── 0.2.0 ───────────────────────────────────────────────────────────
+import { podeVer, mapaBarril } from "../scripts/logica.js";
+
+test("a rolagem de um ficheiro para no fim (quem está ao teclado diz até onde dá)", () => {
+  let e = reduzir(estadoInicial(ctx()), { tipo: "clicar", indice: 0 }, ctx()).estado;
+  for (let i = 0; i < 5; i++) e = reduzir(e, { tipo: "tecla", tecla: "PageDown", max: 12 }, ctx()).estado;
+  assert.equal(e.rolagem, 12);
+  e = reduzir(e, { tipo: "tecla", tecla: "PageUp", max: 12 }, ctx()).estado;
+  assert.equal(e.rolagem, 2, "um PgUp depois do fim sobe logo — não há teclas perdidas");
+  e = reduzir(e, { tipo: "tecla", tecla: "ArrowDown" }, ctx()).estado;
+  assert.equal(e.rolagem, 3, "sem medida (ex.: o mestre sem a janela aberta) rola como antes");
+});
+
+test("quem vê: todos por omissão; com lista, só ela — e quem está ao teclado vê sempre", () => {
+  assert.ok(podeVer({ para: null }, "a"));
+  assert.ok(podeVer({}, "a"));
+  assert.ok(podeVer({ para: ["a", "b"] }, "b"));
+  assert.ok(!podeVer({ para: ["a"] }, "c"));
+  assert.ok(podeVer({ para: ["a"], controlador: "c" }, "c"));
+  assert.ok(!podeVer({ para: [] }, "a"));
+});
+
+test("mapa de barril: o centro não mexe, os cantos vão buscar mais longe (o vidro abaulado)", () => {
+  const w = 64, h = 48, { dados, escala } = mapaBarril(w, h, 0.1);
+  const px = (x, y) => [dados[(y * w + x) * 4], dados[(y * w + x) * 4 + 1]];
+  const [cr, cg] = px(32, 24);
+  assert.ok(Math.abs(cr - 128) <= 2 && Math.abs(cg - 128) <= 2);
+  const [r, g] = px(0, 0);
+  assert.ok(r < 110 && g < 110, "canto de cima à esquerda: amostra mais à esquerda e mais acima");
+  const [r2, g2] = px(w - 1, h - 1);
+  assert.ok(r2 > 146 && g2 > 146);
+  assert.ok(escala > 0);
+  // a meio de uma aresta a deslocação é só perpendicular a ela
+  const [mr] = px(32, 0);
+  assert.ok(Math.abs(mr - 128) <= 3);
+});

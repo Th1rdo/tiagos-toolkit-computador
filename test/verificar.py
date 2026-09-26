@@ -31,7 +31,7 @@ en = json.load(open("lang/en.json", encoding="utf-8"))
 usadas = set()
 for src in list(scripts.values()) + list(templates.values()) + [ler("module.json")]:
     usadas |= set(re.findall(r'"(COMPUTADOR\.[A-Za-z][\w.]*[A-Za-z])"', src))
-usadas |= {f"COMPUTADOR.Fosforo.{k}" for k in ("verde","ambar","branco")} | {f"COMPUTADOR.Moldura.{k}" for k in ("clara","escura","sem")}
+usadas |= {f"COMPUTADOR.Fosforo.{k}" for k in ("verde","ambar","branco")} | {f"COMPUTADOR.Moldura.{k}" for k in ("gasta","clara","escura","sem")}
 for k in sorted(usadas):
     if k not in pt: falhas.append(f"chave {k} ausente em pt-BR")
     if k not in en: falhas.append(f"chave {k} ausente em en")

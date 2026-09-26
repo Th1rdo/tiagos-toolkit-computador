@@ -23,7 +23,7 @@ export async function configurar(diario) {
 
   const ROTULOS = {
     verde: "COMPUTADOR.Fosforo.verde", ambar: "COMPUTADOR.Fosforo.ambar", branco: "COMPUTADOR.Fosforo.branco",
-    clara: "COMPUTADOR.Moldura.clara", escura: "COMPUTADOR.Moldura.escura", sem: "COMPUTADOR.Moldura.sem"
+    gasta: "COMPUTADOR.Moldura.gasta", clara: "COMPUTADOR.Moldura.clara", escura: "COMPUTADOR.Moldura.escura", sem: "COMPUTADOR.Moldura.sem"
   };
   const select = (nome, valores, atual) => `<select name="${nome}">${valores.map(v =>
     `<option value="${v}" ${v === atual ? "selected" : ""}>${t(ROTULOS[v])}</option>`).join("")}</select>`;

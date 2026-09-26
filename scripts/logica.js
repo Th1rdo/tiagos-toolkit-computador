@@ -121,10 +121,13 @@ export function reduzir(estado, entrada, ctx) {
   }
 
   if (e.ecra === "ficheiro") {
-    if (t === "ArrowDown") e.rolagem += 1;
-    else if (t === "ArrowUp") e.rolagem = Math.max(0, e.rolagem - 1);
-    else if (t === "PageDown") e.rolagem += PAGINA;
-    else if (t === "PageUp") e.rolagem = Math.max(0, e.rolagem - PAGINA);
+    // Só quem tem o ficheiro à frente sabe a altura do texto: manda-a com a tecla (`max`, em linhas).
+    // Sem ela, PgDn a mais no fim obrigava a outros tantos PgUp para voltar (0.1).
+    const teto = Number.isFinite(entrada?.max) ? Math.max(0, entrada.max) : Infinity;
+    if (t === "ArrowDown") e.rolagem = Math.min(teto, e.rolagem + 1);
+    else if (t === "ArrowUp") e.rolagem = Math.max(0, Math.min(teto, e.rolagem) - 1);
+    else if (t === "PageDown") e.rolagem = Math.min(teto, e.rolagem + PAGINA);
+    else if (t === "PageUp") e.rolagem = Math.max(0, Math.min(teto, e.rolagem) - PAGINA);
     else if (t === "Escape" || t === "Enter" || t === "Backspace" || entrada?.tipo === "voltar") {
       Object.assign(e, { ecra: "lista", ficheiro: null, rolagem: 0 });
       efeitos.push({ som: "tecla" });
@@ -232,4 +235,43 @@ const FONTE = {
 export function letrasEmBloco(texto, max = 10) {
   const letras = normalizarSenha(texto).toUpperCase().slice(0, max).split("").map(c => FONTE[c] ?? FONTE[" "]);
   return [0, 1, 2, 3, 4].map(l => letras.map(g => g[l].replace(/1/g, "█").replace(/0/g, " ")).join(" "));
+}
+
+// ------------------------------------------------------------------ audiência
+
+/**
+ * Quem vê o computador. `para` nulo = toda a mesa; uma lista = só esses.
+ * Quem está ao teclado vê sempre — não se escreve às cegas. (O mestre vê sempre; decide-se no main.)
+ */
+export const podeVer = (msg, uid) =>
+  !Array.isArray(msg?.para) || msg.para.includes(uid) || (!!uid && msg?.controlador === uid);
+
+// ------------------------------------------------------------------ vidro curvo
+
+/**
+ * O mapa do vidro abaulado para um `feDisplacementMap`: cada pixel diz de onde
+ * se vai buscar a cor (vermelho = x, verde = y, 128 = não mexe). Barril clássico:
+ * o ponto p mostra o que está em p·(1 + k·r²) — o centro quase igual, os cantos
+ * puxados para dentro, e as linhas direitas encurvam como num CRT.
+ *
+ * O filtro só tem uma `escala` para os dois eixos, por isso o canal verde é
+ * corrigido pela proporção h/w; assim a mesma escala serve para x e para y.
+ */
+export function mapaBarril(w, h, k = 0.08) {
+  const D = 2 * k;                       // deslocação máxima (canto), em metades da largura
+  const dados = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    const v = ((y + 0.5) / h) * 2 - 1;
+    for (let x = 0; x < w; x++) {
+      const u = ((x + 0.5) / w) * 2 - 1;
+      const r2 = u * u + v * v;
+      const i = (y * w + x) * 4;
+      dados[i] = 128 + 127 * (u * k * r2) / D;
+      dados[i + 1] = 128 + 127 * (v * k * r2) / D * (h / w);   // y em píxeis de altura, mesma escala
+      dados[i + 2] = 128;
+      dados[i + 3] = 255;
+    }
+  }
+  // feDisplacementMap: P' = P(x + escala·(R/255 − ½)). Com R−128 = 127·du/D, isto dá du·w/2 píxeis.
+  return { dados, escala: (w / 2) * D * (255 / 127) };
 }

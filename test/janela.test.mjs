@@ -61,3 +61,17 @@ test("desligar logo a seguir a mostrar fecha mesmo a janela", async () => {
   await dormir(40);
   assert.ok(j.fechada);
 });
+
+test("0.2: o X do mestre esconde a vista — não desliga o computador", async () => {
+  let desligou = 0, escondeu = 0;
+  Computador.aoDesligar = () => desligou++;
+  Computador.aoFecharVista = () => escondeu++;
+  const j = await Computador.mostrar({ id: "d", nome: "PC", visual: {}, vista: { ecra: "lista" } });
+  await j.close();                                    // o X / «Esconder» do mestre
+  assert.equal(desligou, 0);
+  assert.equal(escondeu, 1);
+  await Computador.mostrar({ id: "d", nome: "PC", visual: {}, vista: { ecra: "lista" } });
+  Computador.fechar();                                // ordem do mestre (desligou para todos)
+  await dormir(20);
+  assert.equal(escondeu, 1, "fechar por ordem do mestre não conta como esconder");
+});

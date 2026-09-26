@@ -1,20 +1,26 @@
-import { MODULE_ID, SOCKET, log } from "./const.js";
-import { estadoInicial, reduzir, vista } from "./logica.js";
+import { MODULE_ID, SOCKET, log, uidTransmissao } from "./const.js";
+import { estadoInicial, reduzir, vista, podeVer } from "./logica.js";
 import { contexto, configDe, desbloquear, eComputador, trancarTudo } from "./dados.js";
 import { Computador } from "./janela.js";
 import { configurar } from "./config.js";
+import { reaplicar } from "./canvas.js";
 
 /**
  * Computadores à mesa.
  *
- * Um diário vira um computador. O mestre carrega em «Mostrar à mesa» e escolhe
- * quem está ao teclado; o monitor abre para toda a gente e cada tecla de quem
- * joga vai ao mestre, que é o único a saber as senhas e o que está fechado.
+ * Um diário vira um computador. O mestre carrega em «Mostrar à mesa», escolhe
+ * quem está ao teclado e quem vê; o monitor ocupa o ecrã de quem vê e cada tecla
+ * de quem joga vai ao mestre, que é o único a saber as senhas e o que está fechado.
  * Os outros recebem só o que se vê. (O Foundry envia os diários a todos os browsers,
  * por isso quem abrir a consola consegue ler o diário — como qualquer diário do Foundry.)
+ *
+ * 0.2: fechar a vista já não desliga. O mestre esconde o monitor e o jogador continua
+ * a usar o computador; volta-se pela aba «Computador ligado» no topo do ecrã.
  */
 
-let ativo = null;          // só no mestre: { id, estado, controlador }
+let ativo = null;          // só no mestre: { id, estado, controlador, vistos, escondido }
+let noAr = null;           // nos jogadores: o último pacote que me diz respeito (para a aba)
+let fecheiAMinha = false;  // nos jogadores: fechei a minha vista de propósito
 
 const souMestreAtivo = () => game.users.activeGM?.isSelf;
 
@@ -37,31 +43,61 @@ function visual(diario) {
 function pacoteAbrir(diario, arranque) {
   return {
     tipo: "abrir", arranque, id: diario.id, nome: diario.name, visual: visual(diario),
-    controlador: ativo.controlador, vista: vista(ativo.estado, contexto(diario))
+    controlador: ativo.controlador, para: ativo.vistos ?? null, vista: vista(ativo.estado, contexto(diario))
   };
 }
 
-/** Pôr um computador à frente da mesa. Só o mestre. */
-export async function abrir(diarioOuId, { controlador = null } = {}) {
+// ---------------------------------------------------------------- a aba «computador ligado»
+
+let aba = null, abaAdiada = null;
+/** Mostra a aba quando há um computador no ar para mim e a minha vista está fechada. */
+function atualizarAba() {
+  clearTimeout(abaAdiada);
+  // adiado: o close() da janela só muda o estado depois de o chamarmos
+  abaAdiada = setTimeout(() => {
+    const quer = game.user.isGM ? !!ativo : !!noAr;
+    if (!quer || Computador.aberta) { aba?.remove(); aba = null; return; }
+    if (!aba) {
+      aba = document.createElement("div");
+      aba.id = "computador-no-ar";
+      aba.addEventListener("click", (ev) => {
+        const acao = ev.target.closest("[data-acao]")?.dataset.acao;
+        if (acao === "ver") ver();
+        else if (acao === "desligar") desligar();
+      });
+      document.body.append(aba);
+    }
+    const t = (k) => game.i18n.localize(k);
+    aba.innerHTML = `<span class="cmp-ponto"></span><span>${t("COMPUTADOR.NoAr")}</span>
+      <button type="button" data-acao="ver">${t("COMPUTADOR.Ver")}</button>
+      ${game.user.isGM ? `<button type="button" data-acao="desligar">${t("COMPUTADOR.Desligar")}</button>` : ""}`;
+  }, 60);
+}
+
+// ---------------------------------------------------------------- mestre
+
+/** Pôr um computador à frente da mesa. Só o mestre. `vistos`: nulo = toda a mesa. */
+export async function abrir(diarioOuId, { controlador = null, vistos = null } = {}) {
   if (!game.user.isGM) return;
   const diario = typeof diarioOuId === "string" ? game.journal.get(diarioOuId) : diarioOuId;
   if (!diario) return;
-  ativo = { id: diario.id, estado: estadoInicial(contexto(diario)), controlador };
+  ativo = { id: diario.id, estado: estadoInicial(contexto(diario)), controlador, vistos, escondido: false };
   guardar();
   const msg = pacoteAbrir(diario, true);
   emitir(msg);                                   // o emit não ecoa: o mestre abre à parte
   await Computador.mostrar(msg, { arranque: true });
+  atualizarAba();
 }
 
 function difundir(efeitos = []) {
   const diario = game.journal.get(ativo?.id);
   if (!diario) return;
-  const msg = { tipo: "vista", vista: vista(ativo.estado, contexto(diario)), controlador: ativo.controlador, efeitos };
+  const msg = { tipo: "vista", vista: vista(ativo.estado, contexto(diario)), controlador: ativo.controlador, para: ativo.vistos ?? null, efeitos };
   emitir(msg);
-  Computador.atualizar(msg);
+  Computador.atualizar(msg);                     // no mestre com a vista escondida não faz nada
 }
 
-/** Uma tecla de quem está ao teclado — corre só no mestre ativo. */
+/** Uma tecla de quem está ao teclado — corre só no mestre ativo, com ou sem a vista dele aberta. */
 async function processar(entrada, de) {
   if (!ativo || !souMestreAtivo()) return;
   const quemPode = de === ativo.controlador || game.users.get(de)?.isGM;
@@ -82,12 +118,65 @@ function mudarControlo(id) {
   difundir();
 }
 
+/** Quem vê mudou: toda a gente recebe o pacote inteiro e decide se abre ou fecha. */
+function mudarAudiencia(lista) {
+  if (!ativo) return;
+  ativo.vistos = Array.isArray(lista) ? lista : null;
+  guardar();
+  const diario = game.journal.get(ativo.id);
+  if (!diario) return;
+  emitir(pacoteAbrir(diario, false));
+  Computador.atualizar({ para: ativo.vistos });
+}
+
 function desligar() {
   if (!ativo) return;
   ativo = null;
   guardar();
   emitir({ tipo: "fechar" });
   Computador.fechar();
+  atualizarAba();
+}
+
+/** Voltar a ver (pela aba). O mestre volta ao que está no ar; o jogador ao último pacote. */
+async function ver() {
+  if (game.user.isGM) {
+    const diario = ativo && game.journal.get(ativo.id);
+    if (!diario) return;
+    ativo.escondido = false;
+    guardar();
+    await Computador.mostrar(pacoteAbrir(diario, false));
+  } else {
+    fecheiAMinha = false;
+    if (noAr) await Computador.mostrar(noAr);
+  }
+  atualizarAba();
+}
+
+// ---------------------------------------------------------------- jogadores
+
+function deixarDeVer() {
+  noAr = null;
+  fecheiAMinha = false;
+  Computador.fechar({ som: Computador.aberta });
+  atualizarAba();
+}
+
+function receberAbrir(msg) {
+  if (!podeVer(msg, game.user.id)) return deixarDeVer();
+  noAr = msg;
+  if (msg.arranque) fecheiAMinha = false;        // um arranque novo é sempre para ver
+  if (!fecheiAMinha) Computador.mostrar(msg, { arranque: !!msg.arranque }).then(atualizarAba);
+  else atualizarAba();
+}
+
+function receberVista(msg) {
+  if (!podeVer(msg, game.user.id)) return deixarDeVer();
+  if (!noAr) return emitir({ tipo: "pedir" });   // passei a ver (ex.: fiquei ao teclado): quero tudo
+  const { efeitos, ...resto } = msg;
+  Object.assign(noAr, resto);
+  Computador.atualizar(msg);
+  atualizarAba();
 }
 
 // ---------------------------------------------------------------- ligações
@@ -97,16 +186,30 @@ Computador.aoEscrever = (entrada) => {
   emitir({ tipo: "entrada", entrada, de: game.user.id });
 };
 Computador.aoMudarControlo = mudarControlo;
+Computador.aoMudarAudiencia = mudarAudiencia;
 Computador.aoDesligar = desligar;
+Computador.aoFecharVista = () => {
+  if (game.user.isGM) { if (ativo) { ativo.escondido = true; guardar(); } }
+  else fecheiAMinha = true;
+  atualizarAba();
+};
+
+Hooks.once("init", () => {
+  game.settings.register(MODULE_ID, "curvatura", {
+    name: "COMPUTADOR.Definicoes.Curvatura", hint: "COMPUTADOR.Definicoes.CurvaturaDica",
+    scope: "client", config: true, type: Boolean, default: true,
+    onChange: () => Computador.redesenhar()
+  });
+});
 
 Hooks.once("ready", () => {
-  game.socket.on(SOCKET, (msg, de) => {
+  game.socket.on(SOCKET, (msg) => {
     switch (msg?.tipo) {
-      case "abrir": return Computador.mostrar(msg, { arranque: !!msg.arranque });
-      case "vista": return Computador.atualizar(msg);
-      case "fechar": return Computador.fechar();
+      case "abrir": return game.user.isGM ? null : receberAbrir(msg);
+      case "vista": return game.user.isGM ? null : receberVista(msg);
+      case "fechar": return game.user.isGM ? null : deixarDeVer();
       case "entrada": return processar(msg.entrada, msg.de);
-      // quem chega a meio (ou recarrega) pede o que está no ar
+      // quem chega a meio (ou recarrega, ou passou a ver) pede o que está no ar
       case "pedir": {
         if (!souMestreAtivo() || !ativo) return;
         const diario = game.journal.get(ativo.id);
@@ -116,17 +219,21 @@ Hooks.once("ready", () => {
   });
   if (!game.user.isGM) emitir({ tipo: "pedir" });
 
-  // o mestre recarregou com um computador no ar: volta a pô-lo à frente de toda a gente
+  // o mestre recarregou com um computador no ar: volta a pô-lo à frente de quem vê
   const antes = game.user.isGM && souMestreAtivo() ? recuperar() : null;
   const diarioAntes = antes && game.journal.get(antes.id);
   if (diarioAntes && eComputador(diarioAntes)) {
     ativo = antes;
     const msg = pacoteAbrir(diarioAntes, false);
     emitir(msg);
-    Computador.mostrar(msg);
+    if (!ativo.escondido) Computador.mostrar(msg).then(atualizarAba);
+    else atualizarAba();
   } else if (antes) { ativo = null; guardar(); }
 
-  game.computador = { abrir, desligar, configurar, trancarTudo: (d) => trancarTudo(typeof d === "string" ? game.journal.get(d) : d) };
+  game.computador = {
+    abrir, desligar, configurar, ver,
+    trancarTudo: (d) => trancarTudo(typeof d === "string" ? game.journal.get(d) : d)
+  };
   log("pronto");
 });
 
@@ -136,22 +243,40 @@ for (const h of ["createJournalEntryPage", "updateJournalEntryPage", "deleteJour
 }
 Hooks.on("updateJournalEntry", (diario) => { if (ativo && diario.id === ativo.id && souMestreAtivo()) difundir(); });
 
-// Quem entra ou sai muda a lista «ao teclado» do rodapé do mestre.
+// Quem entra ou sai muda as listas do rodapé do mestre.
 Hooks.on("userConnected", () => Computador.redesenhar());
+Hooks.on("canvasReady", reaplicar);
 
 // ---------------------------------------------------------------- onde o mestre carrega
 
-/** Escolher quem fica ao teclado — com os jogadores que estão ligados. */
+/** Escolher quem fica ao teclado e quem vê. Se este computador já está no ar, só volta a mostrá-lo. */
 async function escolherEAbrir(diario) {
-  const ligados = game.users.filter(u => u.active && !u.isGM);
-  const opcoes = [`<option value="">${game.i18n.localize("COMPUTADOR.Ninguem")}</option>`]
-    .concat(ligados.map(u => `<option value="${u.id}">${foundry.utils.escapeHTML(u.name)}</option>`)).join("");
+  if (ativo?.id === diario.id) return ver();
+  const esc = foundry.utils.escapeHTML;
+  const t = (k) => game.i18n.localize(k);
+  const trans = uidTransmissao();
+  const jogadores = game.users.filter(u => !u.isGM);
+  const teclado = [`<option value="">${t("COMPUTADOR.Ninguem")}</option>`]
+    .concat(jogadores.filter(u => u.active && u.id !== trans).map(u => `<option value="${u.id}">${esc(u.name)}</option>`)).join("");
+  const quem = jogadores.map(u => `<label><input type="checkbox" name="ve.${u.id}" checked> ${
+    u.id === trans ? t("COMPUTADOR.Transmissao") : esc(u.name)}${u.active ? "" : ` <span class="hint">(${t("COMPUTADOR.ForaDeLinha")})</span>`}</label>`).join("");
   const escolha = await foundry.applications.api.DialogV2.prompt({
-    window: { title: game.i18n.localize("COMPUTADOR.Mostrar"), icon: "fa-solid fa-desktop" },
-    content: `<div class="form-group"><label>${game.i18n.localize("COMPUTADOR.AoTeclado")}</label><select name="controlador">${opcoes}</select></div>`,
-    ok: { label: "COMPUTADOR.Mostrar", callback: (_ev, botao) => botao.form.elements.controlador.value }
+    window: { title: t("COMPUTADOR.Mostrar"), icon: "fa-solid fa-desktop" },
+    content: `<div class="cmp-mostrar">
+      <div class="form-group"><label>${t("COMPUTADOR.AoTeclado")}</label><select name="controlador">${teclado}</select></div>
+      <p><strong>${t("COMPUTADOR.QuemVe")}</strong></p>
+      <div class="cmp-mostrar-lista">${quem || `<span class="hint">${t("COMPUTADOR.SemJogadores")}</span>`}</div>
+    </div>`,
+    ok: {
+      label: "COMPUTADOR.Mostrar",
+      callback: (_ev, botao) => {
+        const f = botao.form.elements;
+        const marcados = jogadores.filter(u => f[`ve.${u.id}`]?.checked).map(u => u.id);
+        return { controlador: f.controlador.value || null, vistos: marcados.length === jogadores.length ? null : marcados };
+      }
+    }
   }).catch(() => undefined);
-  if (escolha !== undefined) await abrir(diario, { controlador: escolha || null });
+  if (escolha) await abrir(diario, escolha);
 }
 
 Hooks.on("getHeaderControlsJournalEntrySheet", (app, controlos) => {
